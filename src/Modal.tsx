@@ -22,7 +22,9 @@ interface ProductModalProps {
 const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
   const [selectedImage, setSelectedImage] = useState<number>(0);
   const [showDescription, setShowDescription] = useState<boolean>(false);
-  const [isSmallScreen, setIsSmallScreen] = useState<boolean>(window.innerWidth <= 640);
+  const [isSmallScreen, setIsSmallScreen] = useState<boolean>(
+    window.innerWidth <= 640
+  );
   const [scrollProgress, setScrollProgress] = useState<number>(
     ((selectedImage + 1) / product.images.length) * 100
   );
@@ -41,7 +43,9 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
     setScrollProgress(((selectedImage + 1) / product.images.length) * 100);
   }, [selectedImage, product.images.length]);
 
-  const handleScroll = (e: React.WheelEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+  const handleScroll = (
+    e: React.WheelEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
+  ) => {
     if (e.type === "wheel") {
       const wheelEvent = e as React.WheelEvent<HTMLDivElement>;
       if (!isSmallScreen) {
@@ -62,7 +66,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
 
       if (touchStartX !== null) {
         const deltaX = touchEndX - touchStartX;
-        if (Math.abs(deltaX) > 30) { // Threshold for swipe
+        if (Math.abs(deltaX) > 30) {
+          // Threshold for swipe
           setSelectedImage((prevIndex) =>
             deltaX > 0
               ? prevIndex === 0
@@ -77,28 +82,36 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
       }
     }
   };
+  
   const handleImageClick = (index: number) => {
     setSelectedImage(index);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    touchStartXRef.current = e.touches[0].clientX;
   };
   const toggleDescription = () => {
     setShowDescription(!showDescription);
   };
 
-  // Calculate visible thumbnails
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    touchStartXRef.current = e.touches[0].clientX;
+  };
+  
   const totalThumbnails = 3;
-  const visibleThumbnails = [];
-  for (let i = 0; i < totalThumbnails; i++) {
-    const index = (selectedImage - 1 + i + product.images.length) % product.images.length;
-    visibleThumbnails.push(product.images[index]);
+  const visibleThumbnails: any[] = [];
+  const numberOfImages = product.images.length;
+
+  if (numberOfImages <= totalThumbnails) {
+    for (let i = 0; i < numberOfImages; i++) {
+      visibleThumbnails.push(product.images[i]);
+    }
+  } else {
+    for (let i = 0; i < totalThumbnails; i++) {
+      const index = (selectedImage - 1 + i + numberOfImages) % numberOfImages;
+      visibleThumbnails.push(product.images[index]);
+    }
   }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div className="bg-white sm:px-10 px-6 py-14 rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden relative overflow-y-auto max-sm:mt-12">
+      <div className="bg-white sm:px-10 px-6 py-14 rounded-2xl shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden relative overflow-y-auto max-sm:mt-12">
         <button
           className="absolute sm:top-8 sm:right-8 top-4 right-4 text-gray-500 hover:text-gray-700"
           onClick={onClose}
@@ -117,16 +130,24 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
               {visibleThumbnails.map((image, index) => (
                 <div
                   key={index}
-                  className={`flex-shrink-0 w-[90px] h-[105px] cursor-pointer border ${
-                    selectedImage === (selectedImage - 1 + index + product.images.length) % product.images.length ? "border-2 border-black" : ""
+                  className={`flex-shrink-0 w-[90px] h-[105px] cursor-pointer border border-black ${
+                    selectedImage ===
+                    (selectedImage - 1 + index + product.images.length) %
+                      product.images.length
+                      ? ""
+                      : ""
                   }`}
-                  onClick={() => handleImageClick((selectedImage - 1 + index + product.images.length) % product.images.length)}
+                  onClick={() =>
+                    handleImageClick(
+                      (selectedImage - 1 + index + product.images.length) %
+                        product.images.length
+                    )
+                  }
                 >
                   {image.type === "video" ? (
                     <video
                       src={image.src}
                       className="w-full h-full object-cover"
-                 
                     />
                   ) : (
                     <img
@@ -153,7 +174,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                 />
               ) : (
                 <img
-                  src={ product.images[selectedImage].src}
+                  src={product.images[selectedImage].src}
                   alt={product.name}
                   className="w-full h-full object-cover"
                 />
