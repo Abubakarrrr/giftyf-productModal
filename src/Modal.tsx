@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaChevronDown, FaChevronUp, FaTimes } from "react-icons/fa";
 
-
 interface MediaItem {
   type: "image" | "video";
   src: string;
@@ -14,7 +13,6 @@ interface Product {
   description: string;
   images: MediaItem[];
 }
-
 
 interface ProductModalProps {
   product: Product;
@@ -29,6 +27,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
     ((selectedImage + 1) / product.images.length) * 100
   );
 
+  // Handle window resize
   useEffect(() => {
     const handleResize = () => {
       setIsSmallScreen(window.innerWidth <= 640);
@@ -38,18 +37,22 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Update scroll progress
   useEffect(() => {
     setScrollProgress(((selectedImage + 1) / product.images.length) * 100);
   }, [selectedImage, product.images.length]);
 
+  // Handle image click
   const handleImageClick = (index: number) => {
     setSelectedImage(index);
   };
 
+  // Toggle description visibility
   const toggleDescription = () => {
     setShowDescription(!showDescription);
   };
 
+  // Handle scrolling
   const handleScroll = (e: React.WheelEvent<HTMLDivElement>) => {
     e.preventDefault();
     if (!isSmallScreen) {
@@ -75,9 +78,26 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
     }
   };
 
+  // Calculate visible thumbnails
+  const totalThumbnails = 3;
+  const visibleThumbnails = [];
+  for (let i = 0; i < totalThumbnails; i++) {
+    const index = (selectedImage - 1 + i + product.images.length) % product.images.length;
+    visibleThumbnails.push(product.images[index]);
+  }
+
+  // Ensure selected image is always shown as the center of the thumbnail array
+  const handleModalOpen = () => {
+    setSelectedImage(0);
+  };
+
+  useEffect(() => {
+    handleModalOpen();
+  }, []);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div className="bg-white px-10 py-14 rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden relative overflow-y-auto">
+      <div className="bg-white sm:px-10 px-6 py-14 rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden relative overflow-y-auto max-sm:mt-16">
         <button
           className="absolute sm:top-8 sm:right-8 top-4 right-4 text-gray-500 hover:text-gray-700"
           onClick={onClose}
@@ -88,13 +108,13 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
         <div className="flex flex-col md:flex-row max-md:gap-4">
           <div className="md:w-1/2 flex max-sm:flex-col-reverse gap-4 relative">
             <div className="flex sm:flex-col gap-2">
-              {product.images.map((image, index) => (
+              {visibleThumbnails.map((image, index) => (
                 <div
                   key={index}
                   className={`flex-shrink-0 w-[90px] h-[105px] cursor-pointer border ${
-                    selectedImage === index ? "border-2 border-black" : ""
+                    selectedImage === (selectedImage - 1 + index + product.images.length) % product.images.length ? "" : ""
                   }`}
-                  onClick={() => handleImageClick(index)}
+                  onClick={() => handleImageClick((selectedImage - 1 + index + product.images.length) % product.images.length)}
                 >
                   {image.type === "video" ? (
                     <video
@@ -113,14 +133,14 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
             </div>
 
             <div
-              className="relative w-full h-full mb-4 flex justify-center border border-black"
+              className="relative h-[330px] w-full   mb-4 flex justify-center border border-black"
               onWheel={handleScroll}
             >
               {product.images[selectedImage].type === "video" ? (
                 <video
                   src={product.images[selectedImage].src}
                   controls
-                  className="w-full h-full aspect-video object-cover"
+                  className="w-full h-full object-cover"
                 />
               ) : (
                 <img
