@@ -43,21 +43,61 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
     setScrollProgress(((selectedImage + 1) / product.images.length) * 100);
   }, [selectedImage, product.images.length]);
 
+  const handleImageClick = (index: number) => {
+    setSelectedImage(index);
+  };
+  const toggleDescription = () => {
+    setShowDescription(!showDescription);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    touchStartXRef.current = e.touches[0].clientX;
+  };
+
+  const totalThumbnails = 3;
+  const visibleThumbnails: any[] = [];
+  const numberOfImages = product.images.length;
+
+  if (numberOfImages <= totalThumbnails) {
+    for (let i = 0; i < numberOfImages; i++) {
+      visibleThumbnails.push(product.images[i]);
+    }
+  } else {
+    for (let i = 0; i < totalThumbnails; i++) {
+      const index = (selectedImage - 1 + i + numberOfImages) % numberOfImages;
+      visibleThumbnails.push(product.images[index]);
+    }
+  }
+
+  const scrollDeltaRef = useRef(0); 
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleScroll = (
     e: React.WheelEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
   ) => {
     if (e.type === "wheel") {
       const wheelEvent = e as React.WheelEvent<HTMLDivElement>;
       if (!isSmallScreen) {
-        if (wheelEvent.deltaY < 0) {
-          setSelectedImage((prevIndex) =>
-            prevIndex === 0 ? product.images.length - 1 : prevIndex - 1
-          );
-        } else {
-          setSelectedImage((prevIndex) =>
-            prevIndex === product.images.length - 1 ? 0 : prevIndex + 1
-          );
+        const scrollThreshold = 100; // Threshold to trigger a scroll action
+
+        scrollDeltaRef.current += wheelEvent.deltaY; 
+
+        if (scrollTimeoutRef.current) {
+          clearTimeout(scrollTimeoutRef.current);
         }
+
+        scrollTimeoutRef.current = setTimeout(() => {
+          if (scrollDeltaRef.current <= -scrollThreshold) {
+            setSelectedImage((prevIndex) =>
+              prevIndex === 0 ? product.images.length - 1 : prevIndex - 1
+            );
+          } else if (scrollDeltaRef.current >= scrollThreshold) {
+            setSelectedImage((prevIndex) =>
+              prevIndex === product.images.length - 1 ? 0 : prevIndex + 1
+            );
+          }
+          scrollDeltaRef.current = 0;
+        }, 150); 
       }
     } else if (e.type === "touchmove") {
       const touchEvent = e as React.TouchEvent<HTMLDivElement>;
@@ -82,36 +122,10 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
       }
     }
   };
-  
-  const handleImageClick = (index: number) => {
-    setSelectedImage(index);
-  };
-  const toggleDescription = () => {
-    setShowDescription(!showDescription);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    touchStartXRef.current = e.touches[0].clientX;
-  };
-  
-  const totalThumbnails = 3;
-  const visibleThumbnails: any[] = [];
-  const numberOfImages = product.images.length;
-
-  if (numberOfImages <= totalThumbnails) {
-    for (let i = 0; i < numberOfImages; i++) {
-      visibleThumbnails.push(product.images[i]);
-    }
-  } else {
-    for (let i = 0; i < totalThumbnails; i++) {
-      const index = (selectedImage - 1 + i + numberOfImages) % numberOfImages;
-      visibleThumbnails.push(product.images[index]);
-    }
-  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div className="bg-white sm:px-10 px-6 py-14 rounded-2xl shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden relative overflow-y-auto max-sm:mt-12">
+      <div className="bg-white sm:px-10 px-6 py-14 rounded-2xl shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden relative overflow-y-auto  ">
         <button
           className="absolute sm:top-8 sm:right-8 top-4 right-4 text-gray-500 hover:text-gray-700"
           onClick={onClose}
@@ -130,11 +144,11 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
               {visibleThumbnails.map((image, index) => (
                 <div
                   key={index}
-                  className={`flex-shrink-0 w-[90px] h-[105px] cursor-pointer border border-black ${
+                  className={`flex-shrink-0 w-[90px] h-[105px] cursor-pointer border  ${
                     selectedImage ===
                     (selectedImage - 1 + index + product.images.length) %
                       product.images.length
-                      ? ""
+                      ? "border-2 border-black"
                       : ""
                   }`}
                   onClick={() =>
