@@ -21,20 +21,20 @@
     images: [
       {
         type: "image",
-        src: "https://via.placeholder.com/400x400.png?text=Floral+Dress+1",
+        src: "ss1.png",
       },
       {
         type: "image",
-        src: "https://via.placeholder.com/400x400.png?text=Floral+Dress+2",
+        src: "ss2.png",
       },
       {
         type: "image",
-        src: "https://via.placeholder.com/400x400.png?text=Floral+Dress+3",
+        src: "ss3.png",
       },
       { type: "video", src: "https://example.com/video.mp4" },
       {
         type: "image",
-        src: "https://via.placeholder.com/400x400.png?text=Floral+Dress+4",
+        src: "ss4.png",
       },
     
     ],
