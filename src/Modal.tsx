@@ -75,35 +75,36 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
   const handleScroll = (
     e: React.WheelEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
   ) => {
-    if (e.type === "wheel") {
+   
+    if (e.type === "wheel" && !isSmallScreen) {
+      e.preventDefault(); 
+  
       const wheelEvent = e as React.WheelEvent<HTMLDivElement>;
-      if (!isSmallScreen) {
-        const scrollThreshold = 100; // Threshold to trigger a scroll action
-
-        scrollDeltaRef.current += wheelEvent.deltaY; 
-
-        if (scrollTimeoutRef.current) {
-          clearTimeout(scrollTimeoutRef.current);
-        }
-
-        scrollTimeoutRef.current = setTimeout(() => {
-          if (scrollDeltaRef.current <= -scrollThreshold) {
-            setSelectedImage((prevIndex) =>
-              prevIndex === 0 ? product.images.length - 1 : prevIndex - 1
-            );
-          } else if (scrollDeltaRef.current >= scrollThreshold) {
-            setSelectedImage((prevIndex) =>
-              prevIndex === product.images.length - 1 ? 0 : prevIndex + 1
-            );
-          }
-          scrollDeltaRef.current = 0;
-        }, 150); 
+      const scrollThreshold = 100; // Threshold to trigger a scroll action
+  
+      scrollDeltaRef.current += wheelEvent.deltaY; 
+  
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
       }
+  
+      scrollTimeoutRef.current = setTimeout(() => {
+        if (scrollDeltaRef.current <= -scrollThreshold) {
+          setSelectedImage((prevIndex) =>
+            prevIndex === 0 ? product.images.length - 1 : prevIndex - 1
+          );
+        } else if (scrollDeltaRef.current >= scrollThreshold) {
+          setSelectedImage((prevIndex) =>
+            prevIndex === product.images.length - 1 ? 0 : prevIndex + 1
+          );
+        }
+        scrollDeltaRef.current = 0;
+      }, 150); // Debounce timeout for smoother scrolling
     } else if (e.type === "touchmove") {
       const touchEvent = e as React.TouchEvent<HTMLDivElement>;
       const touchEndX = touchEvent.changedTouches[0].clientX;
       const touchStartX = touchStartXRef.current;
-
+  
       if (touchStartX !== null) {
         const deltaX = touchEndX - touchStartX;
         if (Math.abs(deltaX) > 30) {
@@ -117,11 +118,12 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
               ? 0
               : prevIndex + 1
           );
-          touchStartXRef.current = null; // Reset
+          touchStartXRef.current = null; // Reset the touch start position
         }
       }
     }
   };
+  
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
