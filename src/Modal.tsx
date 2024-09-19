@@ -126,8 +126,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
   
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div className="bg-white sm:px-10 px-6 py-14 rounded-2xl shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden relative overflow-y-auto  ">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div className="bg-white sm:px-10 px-6 py-12 rounded-2xl shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden relative max-sm:overflow-y-auto">
         <button
           className="absolute sm:top-8 sm:right-8 top-4 right-4 text-gray-500 hover:text-gray-700"
           onClick={onClose}
