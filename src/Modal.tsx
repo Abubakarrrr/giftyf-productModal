@@ -22,26 +22,7 @@ interface ProductModalProps {
 const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
   const [selectedImage, setSelectedImage] = useState<number>(0);
   const [showDescription, setShowDescription] = useState<boolean>(false);
-  const [isSmallScreen, setIsSmallScreen] = useState<boolean>(
-    window.innerWidth <= 640
-  );
-  const [scrollProgress, setScrollProgress] = useState<number>(
-    ((selectedImage + 1) / product.images.length) * 100
-  );
-  const touchStartXRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsSmallScreen(window.innerWidth <= 640);
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    setScrollProgress(((selectedImage + 1) / product.images.length) * 100);
-  }, [selectedImage, product.images.length]);
+ 
 
   const handleImageClick = (index: number) => {
     setSelectedImage(index);
@@ -50,9 +31,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
     setShowDescription(!showDescription);
   };
 
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    touchStartXRef.current = e.touches[0].clientX;
-  };
+ 
 
   const totalThumbnails = 3;
   const visibleThumbnails: any[] = [];
@@ -69,60 +48,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
     }
   }
 
-  const scrollDeltaRef = useRef(0); 
-  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleScroll = (
-    e: React.WheelEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
-  ) => {
-   
-    if (e.type === "wheel" && !isSmallScreen) {
-      e.preventDefault(); 
-  
-      const wheelEvent = e as React.WheelEvent<HTMLDivElement>;
-      const scrollThreshold = 100; // Threshold to trigger a scroll action
-  
-      scrollDeltaRef.current += wheelEvent.deltaY; 
-  
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-  
-      scrollTimeoutRef.current = setTimeout(() => {
-        if (scrollDeltaRef.current <= -scrollThreshold) {
-          setSelectedImage((prevIndex) =>
-            prevIndex === 0 ? product.images.length - 1 : prevIndex - 1
-          );
-        } else if (scrollDeltaRef.current >= scrollThreshold) {
-          setSelectedImage((prevIndex) =>
-            prevIndex === product.images.length - 1 ? 0 : prevIndex + 1
-          );
-        }
-        scrollDeltaRef.current = 0;
-      }, 150); // Debounce timeout for smoother scrolling
-    } else if (e.type === "touchmove") {
-      const touchEvent = e as React.TouchEvent<HTMLDivElement>;
-      const touchEndX = touchEvent.changedTouches[0].clientX;
-      const touchStartX = touchStartXRef.current;
-  
-      if (touchStartX !== null) {
-        const deltaX = touchEndX - touchStartX;
-        if (Math.abs(deltaX) > 30) {
-          // Threshold for swipe
-          setSelectedImage((prevIndex) =>
-            deltaX > 0
-              ? prevIndex === 0
-                ? product.images.length - 1
-                : prevIndex - 1
-              : prevIndex === product.images.length - 1
-              ? 0
-              : prevIndex + 1
-          );
-          touchStartXRef.current = null; // Reset the touch start position
-        }
-      }
-    }
-  };
   
 
   return (
@@ -132,16 +58,14 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
           className="absolute sm:top-8 sm:right-8 top-4 right-4 text-gray-500 hover:text-gray-700"
           onClick={onClose}
         >
-          <FaTimes size={20} />
+          <FaTimes size={20} /> 
         </button>
 
         <div className="flex flex-col md:flex-row max-md:gap-4">
           <div className="md:w-1/2 flex max-sm:flex-col-reverse gap-4 relative">
             <div
               className="flex sm:flex-col gap-2"
-              onWheel={handleScroll}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleScroll}
+          
             >
               {visibleThumbnails.map((image, index) => (
                 <div
@@ -178,9 +102,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
 
             <div
               className="relative h-[330px] w-full mb-4 flex justify-center border border-black"
-              onWheel={handleScroll}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleScroll}
+           
             >
               {product.images[selectedImage].type === "video" ? (
                 <video
@@ -196,29 +118,6 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                 />
               )}
 
-              {!isSmallScreen && (
-                <div className="absolute -right-2 top-0 h-[100%] w-[3px] bg-gray-200">
-                  <div
-                    className="bg-gray-400 rounded"
-                    style={{
-                      height: `${scrollProgress}%`,
-                      transition: "height 0.3s ease",
-                    }}
-                  />
-                </div>
-              )}
-
-              {isSmallScreen && (
-                <div className="absolute -bottom-2 left-0 w-full h-[3px] bg-gray-200">
-                  <div
-                    className="bg-red-400 rounded absolute"
-                    style={{
-                      width: `${scrollProgress}%`,
-                      transition: "width 0.3s ease",
-                    }}
-                  />
-                </div>
-              )}
             </div>
           </div>
 
