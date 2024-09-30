@@ -23,13 +23,12 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
   const [selectedImage, setSelectedImage] = useState<number>(0);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState<number>(0);
   const [showDescription, setShowDescription] = useState<boolean>(false);
+  const [isSmallScreen, setIsSmallScreen] = useState<boolean>(window.innerWidth < 640); // Use state to track screen size
 
   // Ref to accumulate the scroll delta
   const scrollDeltaRef = useRef<number>(0);
   const scrollTimeoutRef = useRef<number | null>(null);
-
   const touchStartXRef = useRef<number | null>(null);
-  const isSmallScreen = window.innerWidth < 640; // Determine if the screen is small (sm)
 
   const totalThumbnails = 3; // Maximum number of thumbnails to show at a time
   const numberOfImages = product.images.length;
@@ -96,6 +95,18 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
     };
   }, []);
 
+  // Update isSmallScreen on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSmallScreen(window.innerWidth < 640);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   // Determine the visible thumbnails based on the current thumbnail start index
   const visibleThumbnails = product.images.slice(
     thumbnailStartIndex,
@@ -106,7 +117,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
   const progressPercentage = ((thumbnailStartIndex / Math.max(1, numberOfImages - totalThumbnails)) * 100).toFixed(2);
 
   // Calculate the horizontal progress percentage
-  const horizontalProgressPercentage = ((thumbnailStartIndex / Math.max(1, numberOfImages - totalThumbnails)) * 100).toFixed(2);
+  // const horizontalProgressPercentage = ((thumbnailStartIndex / Math.max(1, numberOfImages - totalThumbnails)) * 100).toFixed(2);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -157,15 +168,15 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                 </div>
               ))}
 
-              {/* Horizontal Progress Bar for smaller screens */}
+              {/* Horizontal Progress Bar for smaller screens
               {isSmallScreen && (
-                <div className="absolute top-[-15px] right-0 w-full h-1 bg-gray-300 rounded">
+                <div className="absolute bottom-[-12px] right-0 w-full h-1 bg-gray-300 rounded">
                   <div
                     className="bg-gray-500 rounded"
                     style={{ width: `${horizontalProgressPercentage}%` }}
                   />
                 </div>
-              )}
+              )} */}
             </div>
 
             {/* Main Image/Video Viewer */}
