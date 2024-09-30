@@ -23,9 +23,10 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
   const [selectedImage, setSelectedImage] = useState<number>(0);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState<number>(0);
   const [showDescription, setShowDescription] = useState<boolean>(false);
-  const [isSmallScreen, setIsSmallScreen] = useState<boolean>(window.innerWidth < 640); // Use state to track screen size
+  const [isSmallScreen, setIsSmallScreen] = useState<boolean>(
+    window.innerWidth < 640
+  ); // Use state to track screen size
 
-  // Ref to accumulate the scroll delta
   const scrollDeltaRef = useRef<number>(0);
   const scrollTimeoutRef = useRef<number | null>(null);
   const touchStartXRef = useRef<number | null>(null);
@@ -43,6 +44,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
 
   // Handle mouse wheel scrolling
   const handleWheelScroll = (event: WheelEvent) => {
+    if (numberOfImages <= totalThumbnails) return; // Disable scrolling if fewer than 3 images
     event.preventDefault(); // Prevent default scrolling behavior
 
     scrollDeltaRef.current += event.deltaY;
@@ -56,7 +58,9 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
       if (scrollDeltaRef.current <= -100) {
         setThumbnailStartIndex((prev) => Math.max(0, prev - 1)); // Scroll up
       } else if (scrollDeltaRef.current >= 100) {
-        setThumbnailStartIndex((prev) => Math.min(prev + 1, numberOfImages - totalThumbnails)); // Scroll down
+        setThumbnailStartIndex((prev) =>
+          Math.min(prev + 1, numberOfImages - totalThumbnails)
+        ); // Scroll down
       }
 
       scrollDeltaRef.current = 0; // Reset scroll delta after handling
@@ -69,31 +73,34 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
   };
 
   const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (numberOfImages <= totalThumbnails) return; // Disable swipe scrolling if fewer than 3 images
     if (touchStartXRef.current !== null) {
       const touchEndX = event.touches[0].clientX;
       const deltaX = touchEndX - touchStartXRef.current;
 
-      if (Math.abs(deltaX) > 30) { // Threshold for swipe
+      if (Math.abs(deltaX) > 30) {
         setThumbnailStartIndex((prev) =>
           deltaX > 0
             ? Math.max(0, prev - 1) // Swipe right (scroll up)
             : Math.min(prev + 1, numberOfImages - totalThumbnails) // Swipe left (scroll down)
         );
-        touchStartXRef.current = null; // Reset touch start position
+        touchStartXRef.current = null;
       }
     }
   };
 
   // Add and clean up event listener for mouse wheel scrolling
   useEffect(() => {
-    window.addEventListener("wheel", handleWheelScroll, { passive: false });
+    if (numberOfImages > totalThumbnails) {
+      window.addEventListener("wheel", handleWheelScroll, { passive: false });
+    }
     return () => {
       window.removeEventListener("wheel", handleWheelScroll);
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current); // Clear timeout on unmount
       }
     };
-  }, []);
+  }, [numberOfImages]);
 
   // Update isSmallScreen on window resize
   useEffect(() => {
@@ -114,10 +121,11 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
   );
 
   // Calculate the progress percentage for the vertical bar
-  const progressPercentage = ((thumbnailStartIndex / Math.max(1, numberOfImages - totalThumbnails)) * 100).toFixed(2);
-
-  // Calculate the horizontal progress percentage
-  // const horizontalProgressPercentage = ((thumbnailStartIndex / Math.max(1, numberOfImages - totalThumbnails)) * 100).toFixed(2);
+  const progressPercentage = (
+    (thumbnailStartIndex /
+      Math.max(1, numberOfImages - totalThumbnails)) *
+    100
+  ).toFixed(2);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -132,9 +140,13 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
         <div className="flex flex-col md:flex-row max-md:gap-4">
           <div className="md:w-1/2 flex max-sm:flex-col-reverse gap-4 relative">
             {/* Thumbnail Grid with Progress Bar */}
-            <div className="flex sm:flex-col gap-2 relative" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove}>
-              {/* Vertical Progress Bar for larger screens */}
-              {!isSmallScreen && (
+            <div
+              className="flex sm:flex-col gap-2 relative"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+            >
+              {/* Show Progress Bar only if there are more than 3 images */}
+              {numberOfImages > totalThumbnails && !isSmallScreen && (
                 <div className="absolute right-[-10px] top-0 h-[330px] w-[3px] bg-gray-300 rounded">
                   <div
                     className="bg-gray-500 rounded"
@@ -167,16 +179,6 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                   )}
                 </div>
               ))}
-
-              {/* Horizontal Progress Bar for smaller screens
-              {isSmallScreen && (
-                <div className="absolute bottom-[-12px] right-0 w-full h-1 bg-gray-300 rounded">
-                  <div
-                    className="bg-gray-500 rounded"
-                    style={{ width: `${horizontalProgressPercentage}%` }}
-                  />
-                </div>
-              )} */}
             </div>
 
             {/* Main Image/Video Viewer */}
